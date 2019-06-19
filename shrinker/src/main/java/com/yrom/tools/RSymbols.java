@@ -35,6 +35,7 @@ import java.nio.file.PathMatcher;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -185,6 +186,18 @@ class RSymbols {
             return Files.walk(dir.getFile().toPath()).filter(Files::isRegularFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    public void toRawString() {
+        if (symbols != null) {
+            Iterator iter = symbols.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry entry = (Map.Entry) iter.next();
+                Object key = entry.getKey();
+                Object value = entry.getValue();
+                ShrinkerPlugin.logger.debug(key + ":" + value);
+            }
         }
     }
 }

@@ -87,6 +87,8 @@ class InlineRTransform extends Transform {
 
     @Override
     public void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
+        ShrinkerPlugin.logger.lifecycle("******** start inlineR transform!");
+
         if (!config.inlineR) {
             ShrinkerPlugin.logger.lifecycle("skip inlineR transform!");
             return;

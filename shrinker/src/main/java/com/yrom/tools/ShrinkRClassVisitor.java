@@ -49,7 +49,9 @@ class ShrinkRClassVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         classname = name;
-        ShrinkerPlugin.logger.debug("processing class " + name);
+        ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visit name:{}", name);
+//        ShrinkerPlugin.logger.debug("processing class " + name);
+
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
@@ -62,22 +64,37 @@ class ShrinkRClassVisitor extends ClassVisitor {
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
         if (access == 0x19 /*ACC_PUBLIC | ACC_STATIC | ACC_FINAL*/
                 && isRClass(name)) {
-            ShrinkerPlugin.logger.debug("remove visit inner class {} in {}", name, classname);
-            //跳过指定包名的
-//            if(name.contains("com/uxin/usedcar/R")){
-//                ShrinkerPlugin.logger.debug("remove visit inner class is mainR，skip", name, classname);
-//                cv.visitInnerClass(name, outerName, innerName, access);
-//            }
-            return;
+//            ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitInnerClass name:{}，outerName:{}，innerName:{}，access:{}",name,outerName,innerName );
+            ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor ---remove visit inner class {} in {}", name, classname);
+
+            //跳过指定主R的
+            if (!name.startsWith("com/uxin/usedcar/R$")) {
+                return;
+            }
+
+            ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor SKIP-remove。 is mainR，", name, classname);
+
         }
         cv.visitInnerClass(name, outerName, innerName, access);
     }
 
+
+    /**
+     * 内联 int 字面值：
+     *
+     * @param access
+     * @param name
+     * @param desc
+     * @param signature
+     * @param exceptions
+     * @return
+     */
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc,
                                      String signature, String[] exceptions) {
         return new MethodVisitor(Opcodes.ASM5,
                 super.visitMethod(access, name, desc, signature, exceptions)) {
+
 
             @Override
             public void visitFieldInsn(int opcode, String owner, String fieldName,
@@ -89,17 +106,26 @@ class ShrinkRClassVisitor extends ClassVisitor {
                 }
                 String typeName = owner.substring(owner.lastIndexOf('/') + 1);
                 String key = typeName + '.' + fieldName;
+                ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitFieldInsn owner:{}，fieldName:{}，fieldDesc:{}，key:{}", owner, fieldName, fieldDesc ,key);
+
                 if (rSymbols.containsKey(key)) {
+                    ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitFieldInsn 1");
+
                     Integer value = rSymbols.get(key);
                     if (value == null)
                         throw new UnsupportedOperationException("value of " + key + " is null!");
                     if (ShrinkerPlugin.logger.isEnabled(LogLevel.DEBUG)) {
                         ShrinkerPlugin.logger.debug("replace {}.{} to 0x{}", owner, fieldName, Integer.toHexString(value));
                     }
+
                     pushInt(this.mv, value);
                 } else if (owner.endsWith("/R$styleable")) { // replace all */R$styleable ref!
+                    ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitFieldInsn 2");
+
                     this.mv.visitFieldInsn(opcode, RSymbols.R_STYLEABLES_CLASS_NAME, fieldName, fieldDesc);
                 } else {
+                    ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitFieldInsn 3");
+
                     this.mv.visitFieldInsn(opcode, owner, fieldName, fieldDesc);
                 }
             }

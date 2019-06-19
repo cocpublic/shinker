@@ -33,6 +33,10 @@ class ClassTransform implements Function<byte[], byte[]> {
 
     ClassTransform(RSymbols rSymbols) {
         this.rSymbols = rSymbols;
+        //打印symbols
+        ShrinkerPlugin.logger.debug("ClassTransform rSymbols = ");
+        rSymbols.toRawString();
+
     }
 
     @Override
@@ -43,6 +47,8 @@ class ClassTransform implements Function<byte[], byte[]> {
         if (!precondition.isAttemptToVisitR()) {
             return origin;
         }
+        ShrinkerPlugin.logger.debug("ClassTransform isR ");
+
         // don't pass reader to the writer.
         // or it will copy 'CONSTANT POOL' that contains no used entries to lead proguard running failed!
         ClassWriter writer = new ClassWriter(0);

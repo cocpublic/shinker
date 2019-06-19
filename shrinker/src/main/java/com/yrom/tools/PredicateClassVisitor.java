@@ -37,7 +37,6 @@ class PredicateClassVisitor extends ClassVisitor {
     }
 
     boolean isAttemptToVisitR() {
-        ShrinkerPlugin.logger.debug("PredicateClassVisitor isAttemptToVisitR " );
 
         return attemptToVisitR;
     }
@@ -45,13 +44,11 @@ class PredicateClassVisitor extends ClassVisitor {
 
     @Override
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        ShrinkerPlugin.logger.debug("PredicateClassVisitor visitInnerClass name:{}，outerName:{}，innerName:{}，access:{}",name,outerName,innerName,access );
-
         if (!attemptToVisitR
                 && access == 0x19 /*ACC_PUBLIC | ACC_STATIC | ACC_FINAL*/
                 && isRClass(name)) {
+            ShrinkerPlugin.logger.debug("T_ PredicateClassVisitor visitInnerClass name:{}", name);
 
-            ShrinkerPlugin.logger.debug("PredicateClassVisitor visitInnerClass enter" );
 
             attemptToVisitR = true;
         }

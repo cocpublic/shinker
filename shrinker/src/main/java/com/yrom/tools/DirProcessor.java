@@ -20,7 +20,13 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.*;
+import java.nio.file.DirectoryIteratorException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.function.Function;
 
@@ -35,7 +41,8 @@ class DirProcessor extends ClassesProcessor {
     private static DirectoryStream.Filter<Path> CLASS_TRANSFORM_FILTER =
             path -> Files.isDirectory(path)
                     || (Files.isRegularFile(path)
-                    && !CASE_R_FILE.matches(path.getFileName()));
+//                    && !CASE_R_FILE.matches(path.getFileName())
+            );
 
     DirProcessor(Function<byte[], byte[]> classTransform, Path src, Path dst) {
         super(classTransform, src, dst);
@@ -78,9 +85,49 @@ class DirProcessor extends ClassesProcessor {
         }
     }
 
+//    private List<Path> resolveSources() {
+//        ImmutableList.Builder<Path> list = ImmutableList.builder();
+//        try (DirectoryStream<Path> dir = Files.newDirectoryStream(src, CLASS_TRANSFORM_FILTER)) {
+//            for (Path file : dir) {
+//                list.add(file);
+//            }
+//        } catch (DirectoryIteratorException e) {
+//            throw new UncheckedIOException(e.getCause());
+//        } catch (IOException e) {
+//            throw new UncheckedIOException(e);
+//        }
+//        return list.build();
+//    }
+
     private List<Path> resolveSources() {
         ImmutableList.Builder<Path> list = ImmutableList.builder();
-        try (DirectoryStream<Path> dir = Files.newDirectoryStream(src, CLASS_TRANSFORM_FILTER)) {
+        try (DirectoryStream<Path> dir = Files.newDirectoryStream(src, new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path path) throws IOException {
+                if (Files.isDirectory(path)) {
+                    return true;
+                }
+
+                ShrinkerPlugin.logger.debug("ClassTransform resolveSources path = " + path);
+                if (Files.isRegularFile(path)) {
+
+                    if (CASE_R_FILE.matches(path.getFileName())) {
+                        if (path.toString().contains("/com/uxin/usedcar/R")) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+
+                    } else {
+                        return true;
+                    }
+
+                } else {
+                    return false;
+                }
+
+            }
+        })) {
             for (Path file : dir) {
                 list.add(file);
             }
