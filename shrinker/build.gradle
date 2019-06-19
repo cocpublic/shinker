@@ -1,0 +1,41 @@
+apply plugin: 'java'
+
+dependencies {
+    compile gradleApi()
+    compile 'com.android.tools.build:gradle:3.0.0'
+    compile 'org.ow2.asm:asm:6.0'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+apply from: rootProject.file('publish.gradle')
+
+//apply plugin: 'maven'
+
+//def VERSION='0.0.1-beta1'
+//def GROUP_ID='net.yrom'
+//def ARTIFACT_ID='shrinker'
+//def PACKAGING = 'jar'
+//def releaseRepositoryUrl='http://172.20.90.31:8083/repository/hosted_android_release/'
+//def snapshotRepositoryUrl='http://172.20.90.31:8083/repository/hosted_android_snapshot/'
+//def maven_local_username='xin_android_team'
+//def maven_local_password='xin_android_team'
+//uploadArchives {
+//
+//    repositories {
+//        mavenDeployer {
+//
+//            pom.version = VERSION
+//            pom.artifactId = ARTIFACT_ID
+//            pom.groupId = GROUP_ID
+//            pom.packaging = PACKAGING
+//
+//            repository(url: releaseRepositoryUrl) {
+//                authentication(userName: maven_local_username, password: maven_local_password) // maven授权信息
+//            }
+//            snapshotRepository(url: snapshotRepositoryUrl) {
+//                authentication(userName: maven_local_username, password: maven_local_password) //
+//            }
+//        }
+//    }
+//}

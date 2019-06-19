@@ -1,0 +1,72 @@
+buildscript {
+    ext {
+        enableShrinker = project.hasProperty('ENABLE_SHRINKER')
+    }
+    repositories {
+        mavenLocal()
+        google()
+        jcenter()
+        maven { url 'https://jitpack.io' }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.0'
+        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.8.2'
+//        if (enableShrinker) classpath 'net.yrom:shrinker:0.2.7'
+        if (enableShrinker) classpath 'net.yrom:shrinker:0.0.1-beta1'
+    }
+}
+
+apply plugin: 'com.android.application'
+if (enableShrinker) {
+    apply plugin: 'net.yrom.shrinker'
+}
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        applicationId "net.yrom.shrinker.test"
+        minSdkVersion 16
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    buildTypes {
+        release {
+            signingConfig buildTypes.debug.signingConfig
+//            shrinkResources true // 是否删除没有用的资源文件
+//            minifyEnabled true //是否混淆
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), '..//proguard-rules.txt'
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            postprocessing {
+                removeUnusedCode = false // 是否移除未使用的代码
+                removeUnusedResources = false //是否移除未使用资源
+                proguardFiles getDefaultProguardFile('proguard-defaults.txt'),'proguard-rules.pro' //配置混淆规则
+                obfuscate false //是否 开启 混淆
+                optimizeCode false //是否 开启 优化代码
+            }
+        }
+    }
+
+}
+
+dependencies {
+    // support libraries will introduce many R files...
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:support-v4:26.1.0'
+    implementation 'com.android.support:support-vector-drawable:26.1.0'
+    implementation 'com.android.support:design:26.1.0'
+    implementation 'com.android.support:recyclerview-v7:26.1.0'
+    implementation 'com.android.support:cardview-v7:26.1.0'
+}
+
+//apply plugin: 'com.getkeepsafe.dexcount'
+//dexcount {
+//    verbose = false
+//    includeFieldCount = true
+//}

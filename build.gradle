@@ -1,0 +1,19 @@
+
+ext {
+    IS_JITPACK = 'true' == System.env.JITPACK
+}
+
+allprojects {
+    repositories {
+        if (IS_JITPACK) {
+            jcenter()
+        } else {
+            maven {url 'http://maven.aliyun.com/nexus/content/repositories/jcenter/'}
+        }
+        google()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
