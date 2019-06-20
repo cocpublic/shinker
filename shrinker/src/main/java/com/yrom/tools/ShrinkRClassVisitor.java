@@ -29,8 +29,13 @@ import org.objectweb.asm.Opcodes;
  */
 class ShrinkRClassVisitor extends ClassVisitor {
 
-    private String classname;
     private final RSymbols rSymbols;
+    private String classname;
+
+    ShrinkRClassVisitor(ClassWriter cv, RSymbols rSymbols) {
+        super(Opcodes.ASM5, cv);
+        this.rSymbols = rSymbols;
+    }
 
     /**
      * @return true if name matches pattern like {@code .+/R$.+}
@@ -41,9 +46,16 @@ class ShrinkRClassVisitor extends ClassVisitor {
         return $ > slash && $ < className.length() && (className.charAt(slash + 1) | className.charAt($ - 1)) == 'R';
     }
 
-    ShrinkRClassVisitor(ClassWriter cv, RSymbols rSymbols) {
-        super(Opcodes.ASM5, cv);
-        this.rSymbols = rSymbols;
+    private static void pushInt(MethodVisitor mv, int i) {
+        if (0 <= i && i <= 5) {
+            mv.visitInsn(Opcodes.ICONST_0 + i); //  ICONST_0 ~ ICONST_5
+        } else if (i <= Byte.MAX_VALUE) {
+            mv.visitIntInsn(Opcodes.BIPUSH, i);
+        } else if (i <= Short.MAX_VALUE) {
+            mv.visitIntInsn(Opcodes.SIPUSH, i);
+        } else {
+            mv.visitLdcInsn(i);
+        }
     }
 
     @Override
@@ -64,20 +76,11 @@ class ShrinkRClassVisitor extends ClassVisitor {
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
         if (access == 0x19 /*ACC_PUBLIC | ACC_STATIC | ACC_FINAL*/
                 && isRClass(name)) {
-//            ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitInnerClass name:{}，outerName:{}，innerName:{}，access:{}",name,outerName,innerName );
             ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor ---remove visit inner class {} in {}", name, classname);
-
-            //跳过指定主R的
-            if (!name.startsWith("com/uxin/usedcar/R$")) {
-                return;
-            }
-
-            ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor SKIP-remove。 is mainR，", name, classname);
-
+            return;
         }
         cv.visitInnerClass(name, outerName, innerName, access);
     }
-
 
     /**
      * 内联 int 字面值：
@@ -106,7 +109,7 @@ class ShrinkRClassVisitor extends ClassVisitor {
                 }
                 String typeName = owner.substring(owner.lastIndexOf('/') + 1);
                 String key = typeName + '.' + fieldName;
-                ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitFieldInsn owner:{}，fieldName:{}，fieldDesc:{}，key:{}", owner, fieldName, fieldDesc ,key);
+                ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitFieldInsn owner:{}，fieldName:{}，fieldDesc:{}，key:{}", owner, fieldName, fieldDesc, key);
 
                 if (rSymbols.containsKey(key)) {
                     ShrinkerPlugin.logger.debug("T_ ShrinkRClassVisitor visitFieldInsn 1");
@@ -130,17 +133,5 @@ class ShrinkRClassVisitor extends ClassVisitor {
                 }
             }
         };
-    }
-
-    private static void pushInt(MethodVisitor mv, int i) {
-        if (0 <= i && i <= 5) {
-            mv.visitInsn(Opcodes.ICONST_0 + i); //  ICONST_0 ~ ICONST_5
-        } else if (i <= Byte.MAX_VALUE) {
-            mv.visitIntInsn(Opcodes.BIPUSH, i);
-        } else if (i <= Short.MAX_VALUE) {
-            mv.visitIntInsn(Opcodes.SIPUSH, i);
-        } else {
-            mv.visitLdcInsn(i);
-        }
     }
 }

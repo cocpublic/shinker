@@ -4,6 +4,9 @@ buildscript {
     }
     repositories {
         mavenLocal()
+//        maven {
+//            url 'http://172.20.90.31:8083/repository/group_android/'
+//        }
         google()
         jcenter()
         maven { url 'https://jitpack.io' }
@@ -41,19 +44,34 @@ android {
 //            shrinkResources true // 是否删除没有用的资源文件
 //            minifyEnabled true //是否混淆
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), '..//proguard-rules.txt'
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
             postprocessing {
-                removeUnusedCode = false // 是否移除未使用的代码
-                removeUnusedResources = false //是否移除未使用资源
-                proguardFiles getDefaultProguardFile('proguard-defaults.txt'),'proguard-rules.pro' //配置混淆规则
-                obfuscate false //是否 开启 混淆
-                optimizeCode false //是否 开启 优化代码
+                removeUnusedCode = true // 是否移除未使用的代码
+                removeUnusedResources = true //是否移除未使用资源
+//                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),'proguard-rules.pro' //配置混淆规则
+                proguardFiles 'proguard-rules.pro' //配置混淆规则
+                obfuscate true //是否 开启 混淆
+                optimizeCode true //是否 开启 优化代码
             }
         }
     }
 
 }
+
+allprojects {
+    repositories {
+        mavenLocal()
+//        maven {
+//            url 'http://172.20.90.31:8083/repository/group_android/'
+//        }
+        maven { url 'https://dl.bintray.com/umsdk/release' }
+        jcenter()
+    }
+
+
+}
+
 
 dependencies {
     // support libraries will introduce many R files...

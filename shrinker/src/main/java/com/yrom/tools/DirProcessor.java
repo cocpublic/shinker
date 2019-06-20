@@ -104,27 +104,23 @@ class DirProcessor extends ClassesProcessor {
         try (DirectoryStream<Path> dir = Files.newDirectoryStream(src, new DirectoryStream.Filter<Path>() {
             @Override
             public boolean accept(Path path) throws IOException {
+                //这个方法里，觉得是否保留R文件
                 if (Files.isDirectory(path)) {
                     return true;
                 }
 
-                ShrinkerPlugin.logger.debug("ClassTransform resolveSources path = " + path);
-                if (Files.isRegularFile(path)) {
-
-                    if (CASE_R_FILE.matches(path.getFileName())) {
-                        if (path.toString().contains("/com/uxin/usedcar/R")) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-
-                    } else {
-                        return true;
-                    }
-
-                } else {
+                if (!Files.isRegularFile(path)) {
                     return false;
                 }
+
+                ShrinkerPlugin.logger.debug("ClassTransform resolveSources path = " + path);
+
+                // here is isRegularFile
+                if (path.toString().contains("/com/uxin/usedcar/R")) {
+                    return true;
+                }
+
+                return !CASE_R_FILE.matches(path.getFileName());
 
             }
         })) {
